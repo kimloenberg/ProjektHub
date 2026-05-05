@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjektHub</title>
+<style>
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f4;
+  --color-background-tertiary: #eeece9;
+  --color-text-primary: #1a1a18;
+  --color-text-secondary: #5f5e5a;
+  --color-text-tertiary: #888780;
+  --color-border-tertiary: rgba(0,0,0,0.1);
+  --color-border-secondary: rgba(0,0,0,0.18);
+  --color-border-primary: rgba(0,0,0,0.28);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --accent: #1D9E75;
+  --accent-dark: #0F6E56;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1e1e1c;
+    --color-background-secondary: #2a2a27;
+    --color-background-tertiary: #323230;
+    --color-text-primary: #f0ede8;
+    --color-text-secondary: #a8a49e;
+    --color-text-tertiary: #6e6c68;
+    --color-border-tertiary: rgba(255,255,255,0.08);
+    --color-border-secondary: rgba(255,255,255,0.14);
+    --color-border-primary: rgba(255,255,255,0.22);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:var(--color-background-tertiary);min-height:100vh}
+.app-shell{max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:12px 18px;border:0.5px solid var(--color-border-tertiary)}
+.logo{font-size:20px;font-weight:600;letter-spacing:-0.5px}.logo span{color:var(--accent)}
+.tab-row{display:flex;gap:4px;background:var(--color-background-secondary);padding:4px;border-radius:var(--border-radius-md);flex-wrap:wrap}
+.tab{padding:7px 16px;font-size:13px;border:none;background:transparent;cursor:pointer;border-radius:6px;color:var(--color-text-secondary);transition:all 0.15s;font-family:var(--font-sans)}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+.btn{padding:8px 16px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;color:var(--color-text-primary);transition:all 0.15s;font-family:var(--font-sans)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500}.btn-primary:hover{background:var(--accent-dark)}
+.btn-danger{color:#E24B4A;border-color:#E24B4A}.btn-danger:hover{background:#FCEBEB}
+.btn-sm{padding:5px 11px;font-size:12px}
+.panel{display:none}.panel.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px 18px}
+.stat-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
+.stat-val{font-size:24px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+/* Kanban */
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+@media(max-width:700px){.kanban{grid-template-columns:1fr}}
+.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px}
+.col-title{font-size:12px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.6px}
+.col-count{font-size:12px;background:var(--color-background-secondary);padding:2px 8px;border-radius:99px;color:var(--color-text-secondary)}
+.col-drop{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px;min-height:100px}
+.parent-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.parent-header{padding:11px 13px;cursor:pointer;display:flex;align-items:flex-start;gap:8px}
+.parent-header:hover{background:var(--color-background-secondary)}
+.expand-btn{font-size:10px;color:var(--color-text-tertiary);width:16px;flex-shrink:0;margin-top:3px;transition:transform 0.15s;display:inline-block}
+.expand-btn.open{transform:rotate(90deg)}
+.parent-title{font-size:14px;font-weight:500;flex:1;line-height:1.4}
+.parent-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500}
+.prio-high{background:#FCEBEB;color:#A32D2D}.prio-med{background:#FAEEDA;color:#854F0B}.prio-low{background:#EAF3DE;color:#3B6D11}
+.assignee-chip{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:2px 8px;border-radius:99px}
+.deadline{font-size:11px;color:var(--color-text-tertiary)}.deadline.overdue{color:#E24B4A}
+.progress-bar-wrap{height:3px;background:var(--color-background-secondary);margin:0 13px 10px}
+.progress-bar-fill{height:100%;background:var(--accent);border-radius:99px}
+.sub-list{border-top:0.5px solid var(--color-border-tertiary)}
+.sub-task{padding:9px 13px 9px 32px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;cursor:pointer;transition:background 0.1s}
+.sub-task:last-child{border-bottom:none}.sub-task:hover{background:var(--color-background-secondary)}
+.sub-check{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sub-check.done{background:var(--accent);border-color:var(--accent)}
+.sub-check.done::after{content:'';display:block;width:7px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.sub-title{font-size:13px;flex:1;line-height:1.4}.sub-title.done{text-decoration:line-through;color:var(--color-text-tertiary)}
+.sub-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.add-sub-btn{width:100%;text-align:left;padding:7px 13px 7px 32px;font-size:12px;color:var(--color-text-tertiary);border:none;background:transparent;cursor:pointer;font-family:var(--font-sans)}
+.add-sub-btn:hover{color:var(--accent);background:var(--color-background-secondary)}
+/* Gantt */
+.gantt-controls{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;background:var(--color-background-primary);padding:12px 16px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
+.gantt-controls select{font-size:13px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.gantt-wrap{overflow-x:auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary)}
+.gantt-inner{min-width:700px;position:relative}
+.gantt-header-row{display:flex;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.gantt-label-col{width:220px;flex-shrink:0;padding:9px 14px;font-size:12px;font-weight:500;color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-tertiary)}
+.gantt-day-label{font-size:10px;color:var(--color-text-tertiary);padding:9px 0 9px 4px;border-right:0.5px solid var(--color-border-tertiary);flex-shrink:0;white-space:nowrap;overflow:hidden}
+.gantt-row{display:flex;border-bottom:0.5px solid var(--color-border-tertiary);min-height:38px;align-items:center}
+.gantt-row:last-child{border-bottom:none}
+.gantt-row.parent-row{background:var(--color-background-secondary)}
+.gantt-row-label{width:220px;flex-shrink:0;padding:7px 14px;font-size:13px;border-right:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;cursor:pointer}
+.gantt-row-label:hover{color:var(--accent)}
+.gantt-row-label.sub{padding-left:30px;font-size:12px;color:var(--color-text-secondary)}
+.gantt-bar-area{flex:1;position:relative;height:38px;overflow:hidden}
+.gantt-grid-line{position:absolute;top:0;bottom:0;width:0.5px;background:var(--color-border-tertiary)}
+.gantt-grid-line.today-line{background:var(--accent);opacity:0.5;width:2px}
+.gantt-bar{position:absolute;top:9px;height:20px;border-radius:4px;cursor:pointer;display:flex;align-items:center;padding:0 7px;font-size:11px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:filter 0.15s}
+.gantt-bar:hover{filter:brightness(1.08)}
+.gantt-bar.todo{background:#B4B2A9}.gantt-bar.prog{background:var(--accent)}.gantt-bar.done{background:#888780}.gantt-bar.overdue{background:#E24B4A}
+.gantt-bar.parent-bar{height:12px;top:13px;border-radius:2px}
+.gantt-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--color-text-secondary)}
+.legend-dot{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+/* Milestone */
+.ms-row{display:flex;align-items:stretch;margin-bottom:14px;gap:14px}
+.ms-marker{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.ms-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2.5px solid var(--color-background-tertiary);box-shadow:0 0 0 2px var(--accent);margin-top:6px}
+.ms-dot.done{background:#888780;box-shadow:0 0 0 2px #888780}.ms-dot.late{background:#E24B4A;box-shadow:0 0 0 2px #E24B4A}
+.ms-line{flex:1;width:1.5px;background:var(--color-border-tertiary);margin:4px auto 0}
+.ms-card{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 18px}
+.ms-title{font-size:14px;font-weight:500;margin-bottom:4px}.ms-date{font-size:12px;color:var(--color-text-secondary)}
+.ms-progress{height:4px;background:var(--color-background-secondary);border-radius:99px;margin-top:10px;overflow:hidden}
+.ms-bar{height:100%;background:var(--accent);border-radius:99px}.ms-bar.late{background:#E24B4A}
+.ms-tasks-txt{font-size:12px;color:var(--color-text-tertiary);margin-top:4px}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.75rem;width:540px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal h2{font-size:17px;font-weight:600;margin-bottom:1rem}
+.form-group{margin-bottom:13px}
+.form-group label{font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;font-size:13px;padding:9px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{min-height:72px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;border-top:0.5px solid var(--color-border-tertiary);padding-top:1rem}
+.comment-section{margin-top:1rem;border-top:0.5px solid var(--color-border-tertiary);padding-top:1rem}
+.comment-section h3{font-size:13px;font-weight:500;margin-bottom:10px;color:var(--color-text-secondary)}
+.comment-item{margin-bottom:8px;padding:9px 11px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.comment-meta{font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px}.comment-text{font-size:13px}
+.comment-input-row{display:flex;gap:8px;margin-top:8px}.comment-input-row input{flex:1}
+.empty-state{text-align:center;padding:2.5rem;color:var(--color-text-tertiary);font-size:14px}
+.member-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.member-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.notif-item{padding:11px 13px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:7px;font-size:13px;cursor:pointer}
+.notif-item.unread{border-left:3px solid var(--accent)}
+.notif-time{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.dep-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:99px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);margin:2px}
+.dep-chip button{border:none;background:none;cursor:pointer;color:var(--color-text-tertiary);font-size:14px;padding:0;line-height:1}
+.dep-chip button:hover{color:#E24B4A}
+.dep-tags{display:flex;flex-wrap:wrap;gap:4px;min-height:30px;padding:5px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:7px;background:var(--color-background-primary)}
+.settings-section{margin-bottom:2rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem 1.5rem}
+.settings-section h3{font-size:14px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.member-input-row{display:flex;gap:8px;margin-top:12px}.member-input-row input{flex:1}
+.team-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<div class="topbar">
+  <div class="logo">projekt<span>hub</span></div>
+  <div class="tab-row">
+    <button class="tab" onclick="showTab('kanban',this)">Kanban</button>
+    <button class="tab active" onclick="showTab('gantt',this)">Gantt</button>
+    <button class="tab" onclick="showTab('milepæle',this)">Milepæle</button>
+    <button class="tab" onclick="showTab('team',this)">Team</button>
+    <button class="tab" onclick="showTab('notifikationer',this)"><span id="notif-tab-label">Notifikationer</span></button>
+    <button class="tab" onclick="showTab('indstillinger',this)">Indstillinger</button>
+  </div>
+  <button class="btn btn-primary" onclick="openNewTask(null)">+ Ny opgave</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-label">Hovedopgaver</div><div class="stat-val" id="stat-parents">0</div><div class="stat-sub" id="stat-parents-sub"></div></div>
+  <div class="stat-card"><div class="stat-label">Underopgaver færdige</div><div class="stat-val" id="stat-subs">0</div><div class="stat-sub" id="stat-subs-sub"></div></div>
+  <div class="stat-card"><div class="stat-label">Forfaldne</div><div class="stat-val" id="stat-overdue" style="color:#E24B4A">0</div><div class="stat-sub">deadline overskredet</div></div>
+  <div class="stat-card"><div class="stat-label">Milepæle</div><div class="stat-val" id="stat-ms">0</div><div class="stat-sub" id="stat-ms-sub"></div></div>
+</div>
+
+<div id="panel-kanban" class="panel">
+  <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <input type="text" style="flex:1;min-width:160px;font-size:13px;padding:8px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)" placeholder="Søg opgaver..." id="search-input" oninput="renderKanban()">
+    <select id="filter-prio" onchange="renderKanban()" style="font-size:13px;padding:7px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)"><option value="">Alle prioriteter</option><option value="høj">Høj</option><option value="middel">Middel</option><option value="lav">Lav</option></select>
+    <select id="filter-assignee" onchange="renderKanban()" style="font-size:13px;padding:7px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)"><option value="">Alle ansvarlige</option></select>
+  </div>
+  <div class="kanban">
+    <div><div class="col-header"><span class="col-title">Ikke startet</span><span class="col-count" id="cnt-todo">0</span></div><div class="col-drop" id="col-todo"></div></div>
+    <div><div class="col-header"><span class="col-title">I gang</span><span class="col-count" id="cnt-prog">0</span></div><div class="col-drop" id="col-prog"></div></div>
+    <div><div class="col-header"><span class="col-title">Færdig</span><span class="col-count" id="cnt-done">0</span></div><div class="col-drop" id="col-done"></div></div>
+  </div>
+</div>
+
+<div id="panel-gantt" class="panel active">
+  <div class="gantt-controls">
+    <select id="gantt-zoom" onchange="renderGantt()"><option value="7">1 uge</option><option value="14" selected>2 uger</option><option value="30">1 måned</option><option value="60">2 måneder</option><option value="90">3 måneder</option></select>
+    <select id="gantt-filter" onchange="renderGantt()"><option value="all">Alle opgaver</option><option value="parents">Kun hovedopgaver</option></select>
+    <button class="btn btn-sm" onclick="shiftGantt(-1)">← Tilbage</button>
+    <button class="btn btn-sm" onclick="shiftGantt(0)">I dag</button>
+    <button class="btn btn-sm" onclick="shiftGantt(1)">Frem →</button>
+    <div class="gantt-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#B4B2A9"></div>Ikke startet</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>I gang</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#888780"></div>Færdig</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E24B4A"></div>Forfalden</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#378ADD;border-radius:50%"></div>Afhængighed</div>
+    </div>
+  </div>
+  <div class="gantt-wrap"><div class="gantt-inner" id="gantt-inner"></div></div>
+  <div style="margin-top:8px;font-size:12px;color:var(--color-text-tertiary)">Klik på en opgave for at redigere afhængigheder og detaljer.</div>
+</div>
+
+<div id="panel-milepæle" class="panel">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openNewMilestone()">+ Ny milepæl</button></div>
+  <div id="ms-list"></div>
+</div>
+
+<div id="panel-team" class="panel"><div id="team-list"></div></div>
+
+<div id="panel-notifikationer" class="panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:var(--color-background-primary);padding:12px 16px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)">
+    <div style="font-size:15px;font-weight:500">Notifikationer</div>
+    <button class="btn" onclick="markAllRead()">Marker alle læst</button>
+  </div>
+  <div id="notif-list"></div>
+</div>
+
+<div id="panel-indstillinger" class="panel">
+  <div class="settings-section">
+    <h3>Teammedlemmer</h3>
+    <div id="settings-members"></div>
+    <div class="member-input-row">
+      <input type="text" id="new-member-name" placeholder="Navn" style="font-size:13px;padding:8px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)">
+      <input type="text" id="new-member-role" placeholder="Rolle" style="font-size:13px;padding:8px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)">
+      <button class="btn btn-primary" onclick="addMember()">Tilføj</button>
+    </div>
+  </div>
+  <div class="settings-section">
+    <h3>Nulstil data</h3>
+    <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">Slet alle opgaver, milepæle og notifikationer permanent.</p>
+    <button class="btn btn-danger" onclick="resetAll()">Nulstil alt</button>
+  </div>
+</div>
+
+</div><!-- end app-shell -->
+
+<div id="modal-bg" class="modal-bg" style="display:none" onclick="closeMBG(event)">
+  <div class="modal" onclick="event.stopPropagation()"><div id="modal-content"></div></div>
+</div>
+
+<script>
+const KEY='projekthub_v6';
+let state=load();
+let expanded={};
+let ganttOffset=0;
+
+function defaultState(){
+  const now=new Date();
+  const d=(n)=>{const x=new Date(now);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
+  return {
+    tasks:[
+      {id:1,parentId:null,title:'Hjemmeside redesign',description:'Fuld redesign af virksomhedens hjemmeside med nyt brand.',priority:'høj',status:'prog',assignee:'Anna',startDate:d(-5),deadline:d(14),milestoneId:1,deps:[],comments:[{author:'Bo',text:'Wireframes er klar til review.',time:new Date(now-3600000).toISOString()}],createdAt:now.toISOString()},
+      {id:2,parentId:1,title:'Udarbejd wireframes',priority:'høj',status:'done',assignee:'Cecilie',startDate:d(-5),deadline:d(-1),milestoneId:1,deps:[],comments:[],description:'',createdAt:now.toISOString()},
+      {id:3,parentId:1,title:'Copywriting til forside',priority:'middel',status:'prog',assignee:'Anna',startDate:d(0),deadline:d(7),milestoneId:1,deps:[2],comments:[],description:'',createdAt:now.toISOString()},
+      {id:4,parentId:1,title:'Implementer design i kode',priority:'høj',status:'todo',assignee:'Bo',startDate:d(8),deadline:d(14),milestoneId:1,deps:[3],comments:[],description:'',createdAt:now.toISOString()},
+      {id:5,parentId:null,title:'Lancering af mobilapp',description:'iOS og Android app klar til app store indsendelse.',priority:'høj',status:'prog',assignee:'Bo',startDate:d(-3),deadline:d(30),milestoneId:2,deps:[1],comments:[],createdAt:now.toISOString()},
+      {id:6,parentId:5,title:'Brugertest – runde 1',priority:'høj',status:'done',assignee:'David',startDate:d(-3),deadline:d(-1),milestoneId:2,deps:[],comments:[],description:'',createdAt:now.toISOString()},
+      {id:7,parentId:5,title:'Fix kritiske bugs',priority:'høj',status:'prog',assignee:'Bo',startDate:d(0),deadline:d(10),milestoneId:2,deps:[6],comments:[],description:'',createdAt:now.toISOString()},
+      {id:8,parentId:5,title:'App store materialer',priority:'middel',status:'todo',assignee:'Cecilie',startDate:d(11),deadline:d(25),milestoneId:2,deps:[7],comments:[],description:'',createdAt:now.toISOString()},
+      {id:9,parentId:null,title:'Intern vidensbase',description:'Samlet dokumentationsportal for alle teams.',priority:'middel',status:'todo',assignee:'Cecilie',startDate:d(5),deadline:d(45),milestoneId:null,deps:[],comments:[],createdAt:now.toISOString()},
+      {id:10,parentId:9,title:'Kortlæg dokumentation',priority:'lav',status:'todo',assignee:'David',startDate:d(5),deadline:d(12),milestoneId:null,deps:[],comments:[],description:'',createdAt:now.toISOString()},
+      {id:11,parentId:9,title:'Vælg og opsæt platform',priority:'middel',status:'todo',assignee:'Cecilie',startDate:d(13),deadline:d(25),milestoneId:null,deps:[10],comments:[],description:'',createdAt:now.toISOString()},
+      {id:12,parentId:9,title:'Skriv onboarding-guide',priority:'middel',status:'todo',assignee:'Anna',startDate:d(26),deadline:d(45),milestoneId:null,deps:[11],comments:[],description:'',createdAt:now.toISOString()},
+      {id:13,parentId:null,title:'Q3 marketing kampagne',description:'Multichannel kampagne til produktlancering i Q3.',priority:'middel',status:'todo',assignee:'David',startDate:d(10),deadline:d(60),milestoneId:3,deps:[5],comments:[],createdAt:now.toISOString()},
+      {id:14,parentId:13,title:'Definer målgruppe',priority:'høj',status:'prog',assignee:'Anna',startDate:d(10),deadline:d(18),milestoneId:3,deps:[],comments:[],description:'',createdAt:now.toISOString()},
+      {id:15,parentId:13,title:'Producér annoncer',priority:'middel',status:'todo',assignee:'Cecilie',startDate:d(19),deadline:d(40),milestoneId:3,deps:[14],comments:[],description:'',createdAt:now.toISOString()},
+      {id:16,parentId:13,title:'Planlæg udgivelser',priority:'lav',status:'todo',assignee:'David',startDate:d(41),deadline:d(60),milestoneId:3,deps:[15],comments:[],description:'',createdAt:now.toISOString()},
+    ],
+    milestones:[
+      {id:1,title:'Website live',date:new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+14).toISOString().slice(0,10),done:false},
+      {id:2,title:'App store indsendelse',date:new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+30).toISOString().slice(0,10),done:false},
+      {id:3,title:'Q3 kampagne go-live',date:new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+60).toISOString().slice(0,10),done:false},
+    ],
+    members:['Anna','Bo','Cecilie','David'],
+    memberRoles:['Projektleder','Udvikler','Designer','Marketing'],
+    notifications:[
+      {id:1,text:'Opgave afsluttet: "Udarbejd wireframes"',time:new Date(Date.now()-7200000).toISOString(),read:false},
+      {id:2,text:'Opgave afsluttet: "Brugertest – runde 1"',time:new Date(Date.now()-5400000).toISOString(),read:false},
+      {id:3,text:'Bo kommenterede på "Hjemmeside redesign"',time:new Date(Date.now()-3600000).toISOString(),read:false},
+    ],
+    nextTaskId:17,nextMsId:4,nextNotifId:4
+  };
+}
+
+function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}return defaultState();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function resetAll(){if(!confirm('Er du sikker? Alle data slettes.'))return;state=defaultState();ganttOffset=0;save();render();closeModalNow();}
+
+function addNotif(text){state.notifications.unshift({id:state.nextNotifId++,text,time:new Date().toISOString(),read:false});save();updateNotifBadge();}
+function updateNotifBadge(){const n=state.notifications.filter(x=>!x.read).length;document.getElementById('notif-tab-label').textContent=n>0?`Notifikationer (${n})`:'Notifikationer';}
+function markAllRead(){state.notifications.forEach(n=>n.read=true);save();updateNotifBadge();renderNotif();}
+
+function showTab(t,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  btn.classList.add('active');
+  render();
+}
+
+function render(){renderStats();renderKanban();if(typeof renderGantt==='function')renderGantt();renderMilestones();renderTeam();renderNotif();renderSettings();updateKanbanFilters();}
+
+function updateKanbanFilters(){
+  const asel=document.getElementById('filter-assignee');if(!asel)return;
+  const cur=asel.value;asel.innerHTML='<option value="">Alle ansvarlige</option>';
+  state.members.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;if(m===cur)o.selected=true;asel.appendChild(o);});
+}
+
+function renderStats(){
+  const parents=state.tasks.filter(t=>!t.parentId);
+  const subs=state.tasks.filter(t=>t.parentId);
+  const subsDone=subs.filter(t=>t.status==='done').length;
+  const today=new Date().toISOString().slice(0,10);
+  const overdue=state.tasks.filter(t=>t.deadline&&t.deadline<today&&t.status!=='done').length;
+  document.getElementById('stat-parents').textContent=parents.length;
+  document.getElementById('stat-parents-sub').textContent=parents.filter(t=>t.status==='done').length+' afsluttet';
+  document.getElementById('stat-subs').textContent=subsDone+'/'+subs.length;
+  document.getElementById('stat-subs-sub').textContent=subs.length?Math.round(subsDone/subs.length*100)+'% færdige':'–';
+  document.getElementById('stat-overdue').textContent=overdue;
+  document.getElementById('stat-ms').textContent=state.milestones.length;
+  document.getElementById('stat-ms-sub').textContent=state.milestones.filter(m=>m.done).length+' afsluttet';
+}
+
+function shiftGantt(dir){
+  if(dir===0){ganttOffset=0;}
+  else{const zoom=parseInt(document.getElementById('gantt-zoom').value)||14;ganttOffset+=dir*Math.max(7,Math.floor(zoom/2));}
+  renderGantt();
+}
+
+function renderGantt(){
+  const el=document.getElementById('gantt-inner');if(!el)return;
+  const zoom=parseInt((document.getElementById('gantt-zoom')||{value:'14'}).value)||14;
+  const filterMode=(document.getElementById('gantt-filter')||{value:'all'}).value||'all';
+  const today=new Date();today.setHours(0,0,0,0);
+  const startDate=new Date(today);startDate.setDate(startDate.getDate()-Math.floor(zoom/4)+ganttOffset);
+  const totalDays=zoom;
+  const colW=220;
+  const dayW=Math.max(26,Math.floor((Math.max(window.innerWidth-80,700)-colW)/totalDays));
+
+  let rows=[];
+  state.tasks.filter(t=>!t.parentId).forEach(p=>{
+    rows.push({task:p,isParent:true});
+    if(filterMode==='all')state.tasks.filter(c=>c.parentId===p.id).forEach(c=>rows.push({task:c,isParent:false}));
+  });
+
+  const days=[];
+  for(let i=0;i<totalDays;i++){const d=new Date(startDate);d.setDate(d.getDate()+i);days.push(d);}
+
+  function dayOff(dateStr){if(!dateStr)return null;const d=new Date(dateStr);d.setHours(0,0,0,0);return Math.round((d-startDate)/(86400000));}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  const todayStr=today.toISOString().slice(0,10);
+  const barPos={};
+
+  let headerHTML=`<div class="gantt-header-row"><div class="gantt-label-col">Opgave</div><div style="flex:1;display:flex;overflow:hidden">`;
+  days.forEach((d,i)=>{
+    const isT=d.toISOString().slice(0,10)===todayStr;
+    const show=d.getDate()===1||i===0||(d.getDay()===1&&zoom<=30)||zoom<=14;
+    const lbl=show?`${d.getDate()}/${d.getMonth()+1}`:'';
+    headerHTML+=`<div class="gantt-day-label" style="width:${dayW}px;${isT?'color:var(--accent);font-weight:600':''}">${lbl}</div>`;
+  });
+  headerHTML+=`</div></div>`;
+
+  let rowsHTML='';
+  rows.forEach((row,ri)=>{
+    const t=row.task;
+    const over=t.deadline&&t.deadline<todayStr&&t.status!=='done';
+    const sOff=dayOff(t.startDate||t.deadline);
+    const eOff=dayOff(t.deadline);
+    let barCls=t.status==='done'?'done':t.status==='prog'?'prog':over?'overdue':'todo';
+    if(row.isParent)barCls+=' parent-bar';
+    let barL=null,barW=null;
+    if(sOff!==null&&eOff!==null){
+      const s=clamp(sOff,0,totalDays);const e=clamp(eOff+1,0,totalDays);
+      if(e>s){barL=s*dayW;barW=(e-s)*dayW;}
+    }
+    const ch=state.tasks.filter(c=>c.parentId===t.id);
+    const deps=(t.deps||[]).length;
+    rowsHTML+=`<div class="gantt-row${row.isParent?' parent-row':''}">
+      <div class="gantt-row-label${row.isParent?'':' sub'}" onclick="openTask(${t.id})" title="${esc(t.title)}">
+        ${row.isParent?`<span style="font-size:10px;color:var(--color-text-tertiary)">${ch.length?ch.filter(c=>c.status==='done').length+'/'+ch.length:''}</span>`:'<span style="font-size:11px;color:var(--color-text-tertiary)">↳</span>'}
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(t.title)}</span>
+        ${deps?`<span style="font-size:10px;color:#378ADD;flex-shrink:0" title="${deps} afhængighed${deps>1?'er':''}">⬡${deps}</span>`:''}
+      </div>
+      <div class="gantt-bar-area" style="width:${totalDays*dayW}px">
+        ${days.map((d,i)=>{const isT=d.toISOString().slice(0,10)===todayStr;return`<div class="gantt-grid-line${isT?' today-line':''}" style="left:${i*dayW}px"></div>`;}).join('')}
+        ${barL!==null?`<div class="gantt-bar ${barCls}" style="left:${barL}px;width:${Math.max(barW,6)}px" onclick="openTask(${t.id})" title="${esc(t.title)}">${barW>50?esc(t.title.substring(0,Math.floor(barW/8))):''}</div>`:''}
+      </div>
+    </div>`;
+    if(barL!==null)barPos[t.id]={ri,x1:colW+barL+barW,x2:colW+barL,y:ri*38+19};
+  });
+
+  let arrows='';
+  rows.forEach(row=>{
+    (row.task.deps||[]).forEach(depId=>{
+      const from=barPos[depId],to=barPos[row.task.id];
+      if(!from||!to)return;
+      const cx=Math.max(from.x1+16,to.x2-16);
+      arrows+=`<path d="M${from.x1},${from.y} C${cx},${from.y} ${cx},${to.y} ${to.x2},${to.y}" stroke="#378ADD" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr)"/>`;
+    });
+  });
+
+  const svgW=colW+totalDays*dayW;
+  const svgH=rows.length*38;
+  el.innerHTML=headerHTML+`<div style="position:relative">
+    ${arrows?`<svg style="position:absolute;top:0;left:0;width:${svgW}px;height:${svgH}px;pointer-events:none;overflow:visible;z-index:2">
+      <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#378ADD"/></marker></defs>${arrows}</svg>`:''}
+    ${rowsHTML}</div>`;
+}
+
+function getStatus(t){const ch=state.tasks.filter(c=>c.parentId===t.id);if(!ch.length)return t.status;if(ch.every(c=>c.status==='done'))return'done';if(ch.some(c=>c.status==='prog'||c.status==='done'))return'prog';return'todo';}
+function filteredParents(){
+  const q=(document.getElementById('search-input')||{}).value?.toLowerCase()||'';
+  const prio=(document.getElementById('filter-prio')||{}).value||'';
+  const assignee=(document.getElementById('filter-assignee')||{}).value||'';
+  return state.tasks.filter(t=>{
+    if(t.parentId)return false;
+    const ch=state.tasks.filter(c=>c.parentId===t.id);
+    if(q&&![t,...ch].some(x=>x.title.toLowerCase().includes(q)))return false;
+    if(prio&&t.priority!==prio)return false;
+    if(assignee&&![t,...ch].some(x=>x.assignee===assignee))return false;
+    return true;
+  });
+}
+function renderKanban(){
+  const today=new Date().toISOString().slice(0,10);
+  const parents=filteredParents();
+  const cols={todo:[],prog:[],done:[]};
+  parents.forEach(t=>{const s=getStatus(t);(cols[s]||cols.todo).push(t);});
+  ['todo','prog','done'].forEach(s=>{
+    const el=document.getElementById('col-'+s);const cnt=document.getElementById('cnt-'+s);
+    if(!el)return;cnt.textContent=cols[s].length;
+    if(!cols[s].length){el.innerHTML='<div class="empty-state">Ingen opgaver</div>';return;}
+    el.innerHTML=cols[s].map(t=>parentCardHTML(t,today)).join('');
+  });
+}
+function parentCardHTML(t,today){
+  const ch=state.tasks.filter(c=>c.parentId===t.id);
+  const dc=ch.filter(c=>c.status==='done').length;
+  const pct=ch.length?Math.round(dc/ch.length*100):0;
+  const isExp=!!expanded[t.id];
+  const over=t.deadline&&t.deadline<today&&getStatus(t)!=='done';
+  const ms=t.milestoneId?state.milestones.find(m=>m.id===t.milestoneId):null;
+  const deps=(t.deps||[]).map(id=>{const d=state.tasks.find(x=>x.id===id);return d?d.title:'';}).filter(Boolean);
+  const subHtml=isExp?`<div class="sub-list">${ch.map(sub=>{const so=sub.deadline&&sub.deadline<today&&sub.status!=='done';return`<div class="sub-task" onclick="openTask(${sub.id})"><div class="sub-check${sub.status==='done'?' done':''}" onclick="event.stopPropagation();toggleSubDone(${sub.id})"></div><span class="sub-title${sub.status==='done'?' done':''}">${esc(sub.title)}</span><div class="sub-meta">${sub.assignee?`<span class="assignee-chip">${esc(sub.assignee)}</span>`:''}<span class="deadline${so?' overdue':''}">${sub.deadline||''}</span></div></div>`;}).join('')}<button class="add-sub-btn" onclick="openNewTask(${t.id})">+ Tilføj underopgave</button></div>`:'';
+  return`<div class="parent-card"><div class="parent-header" onclick="toggleExpand(${t.id})"><span class="expand-btn${isExp?' open':''}">▶</span><div style="flex:1"><div class="parent-title">${esc(t.title)}</div><div class="parent-meta"><span class="badge prio-${t.priority==='høj'?'high':t.priority==='middel'?'med':'low'}">${t.priority}</span>${t.assignee?`<span class="assignee-chip">${esc(t.assignee)}</span>`:''} ${t.deadline?`<span class="deadline${over?' overdue':''}">${t.deadline}</span>`:''} ${ms?`<span class="badge" style="background:#E1F5EE;color:#085041">${esc(ms.title)}</span>`:''} ${ch.length?`<span style="font-size:11px;color:var(--color-text-tertiary)">${dc}/${ch.length} underopgaver</span>`:''} ${deps.length?`<span style="font-size:11px;color:#378ADD">← ${deps.length} afhæng.</span>`:''}</div></div><button class="btn btn-sm" onclick="event.stopPropagation();openTask(${t.id})">Åbn</button></div>${ch.length?`<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>`:''} ${isExp?subHtml:`<div style="padding:0 13px 9px 32px"><button class="add-sub-btn" style="padding:0;border:none;background:transparent;font-size:12px;color:var(--color-text-tertiary)" onclick="event.stopPropagation();openNewTask(${t.id})">+ Tilføj underopgave</button></div>`}</div>`;
+}
+function toggleExpand(id){expanded[id]=!expanded[id];renderKanban();}
+function toggleSubDone(id){const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status=t.status==='done'?'todo':'done';if(t.status==='done')addNotif(`Underopgave afsluttet: "${t.title}"`);save();render();}
+
+function renderMilestones(){
+  const el=document.getElementById('ms-list');if(!el)return;
+  if(!state.milestones.length){el.innerHTML='<div class="empty-state">Ingen milepæle endnu</div>';return;}
+  const today=new Date().toISOString().slice(0,10);
+  el.innerHTML=state.milestones.map((ms,i)=>{
+    const msTasks=state.tasks.filter(t=>t.milestoneId===ms.id);
+    const done=msTasks.filter(t=>t.status==='done').length;
+    const pct=msTasks.length?Math.round(done/msTasks.length*100):0;
+    const late=!ms.done&&ms.date&&ms.date<today;
+    return`<div class="ms-row"><div class="ms-marker"><div class="ms-dot${ms.done?' done':late?' late':''}"></div>${i<state.milestones.length-1?'<div class="ms-line"></div>':''}</div><div class="ms-card"><div style="display:flex;align-items:flex-start;justify-content:space-between"><div><div class="ms-title">${esc(ms.title)}</div><div class="ms-date">${ms.date||'Ingen dato'}${late?' — forfalden':''}${ms.done?' — afsluttet':''}</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="toggleMsDone(${ms.id})">${ms.done?'Genåbn':'Afslut'}</button><button class="btn btn-sm" onclick="openEditMs(${ms.id})">Rediger</button></div></div>${msTasks.length?`<div class="ms-progress"><div class="ms-bar${late?' late':''}" style="width:${pct}%"></div></div><div class="ms-tasks-txt">${done}/${msTasks.length} opgaver færdige (${pct}%)</div>`:'<div class="ms-tasks-txt" style="margin-top:8px">Ingen tilknyttede opgaver</div>'}</div></div>`;
+  }).join('');
+}
+
+function renderTeam(){
+  const el=document.getElementById('team-list');if(!el)return;
+  const colors=['#9FE1CB','#B5D4F4','#F5C4B3','#FAC775'];
+  const textColors=['#085041','#042C53','#4A1B0C','#412402'];
+  el.innerHTML='<div class="team-card">'+state.members.map((m,i)=>{
+    const tasks=state.tasks.filter(t=>t.assignee===m);
+    const done=tasks.filter(t=>t.status==='done').length;
+    const ci=i%colors.length;
+    return`<div class="member-row"><div class="member-avatar" style="background:${colors[ci]};color:${textColors[ci]}">${m.slice(0,2).toUpperCase()}</div><div><div style="font-size:14px;font-weight:500">${esc(m)}</div><div style="font-size:12px;color:var(--color-text-secondary)">${esc(state.memberRoles[i]||'Teammedlem')}</div></div><div style="margin-left:auto;font-size:12px;color:var(--color-text-tertiary)">${tasks.length} opgaver, ${done} færdige</div></div>`;
+  }).join('')+'</div>';
+}
+
+function renderNotif(){
+  const el=document.getElementById('notif-list');if(!el)return;
+  updateNotifBadge();
+  if(!state.notifications.length){el.innerHTML='<div class="empty-state">Ingen notifikationer</div>';return;}
+  el.innerHTML=state.notifications.slice(0,30).map(n=>`<div class="notif-item${n.read?'':' unread'}" onclick="readNotif(${n.id})">${esc(n.text)}<div class="notif-time">${fmtTime(n.time)}</div></div>`).join('');
+}
+function readNotif(id){const n=state.notifications.find(x=>x.id===id);if(n){n.read=true;save();updateNotifBadge();renderNotif();}}
+
+function renderSettings(){
+  const el=document.getElementById('settings-members');if(!el)return;
+  const colors=['#9FE1CB','#B5D4F4','#F5C4B3','#FAC775'];
+  const textColors=['#085041','#042C53','#4A1B0C','#412402'];
+  el.innerHTML=state.members.map((m,i)=>`<div class="member-row"><div class="member-avatar" style="background:${colors[i%4]};color:${textColors[i%4]};width:30px;height:30px;font-size:11px">${m.slice(0,2).toUpperCase()}</div><div style="flex:1;font-size:14px;font-weight:500">${esc(m)}</div><div style="flex:1;font-size:12px;color:var(--color-text-secondary)">${esc(state.memberRoles[i]||'')}</div><button class="btn btn-danger btn-sm" onclick="removeMember(${i})">Fjern</button></div>`).join('');
+}
+function addMember(){
+  const name=document.getElementById('new-member-name').value.trim();
+  const role=document.getElementById('new-member-role').value.trim();
+  if(!name)return;state.members.push(name);state.memberRoles.push(role||'Teammedlem');
+  document.getElementById('new-member-name').value='';document.getElementById('new-member-role').value='';
+  save();render();
+}
+function removeMember(i){
+  const name=state.members[i];if(!confirm(`Fjern ${name}?`))return;
+  state.members.splice(i,1);state.memberRoles.splice(i,1);
+  state.tasks.forEach(t=>{if(t.assignee===name)t.assignee='';});save();render();
+}
+
+function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-bg').style.display='flex';}
+function closeModalNow(){document.getElementById('modal-bg').style.display='none';}
+function closeMBG(e){if(e.target===document.getElementById('modal-bg'))closeModalNow();}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtTime(iso){try{const d=new Date(iso),now=new Date(),diff=now-d;if(diff<60000)return'Lige nu';if(diff<3600000)return Math.round(diff/60000)+' min siden';if(diff<86400000)return Math.round(diff/3600000)+' timer siden';return d.toLocaleDateString('da-DK');}catch(e){return iso;}}
+function memberOptions(sel){return['<option value="">Ikke tildelt</option>',...state.members.map(m=>`<option value="${esc(m)}"${m===sel?' selected':''}>${esc(m)}</option>`)].join('');}
+function msOptions(sel){return['<option value="">Ingen milepæl</option>',...state.milestones.map(ms=>`<option value="${ms.id}"${ms.id===sel?' selected':''}>${esc(ms.title)}</option>`)].join('');}
+function parentOptions(sel,excl){return['<option value="">Ingen (hovedopgave)</option>',...state.tasks.filter(t=>!t.parentId&&t.id!==excl).map(t=>`<option value="${t.id}"${t.id===sel?' selected':''}>${esc(t.title)}</option>`)].join('');}
+
+function openNewTask(parentId){
+  const parentTask=parentId?state.tasks.find(x=>x.id===parentId):null;
+  openModal(`
+    <div style="margin-bottom:1rem">
+      ${parentTask ? `<div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:3px">Underopgave i: ${esc(parentTask.title)}</div>` : `<div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">${parentId ? 'Underopgave' : 'Hovedopgave'}</div>`}
+      <h2>${parentTask?'Ny underopgave':'Ny opgave'}</h2>
+    </div>
+    <div class="form-group"><label>Titel</label><input type="text" id="f-title" placeholder="Titel"></div>
+    <div class="form-group"><label>Beskrivelse</label><textarea id="f-desc" placeholder="Valgfri beskrivelse"></textarea></div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Status</label><select id="f-status"><option value="todo">Ikke startet</option><option value="prog">I gang</option><option value="done">Færdig</option></select></div><div class="form-group"><label>Prioritet</label><select id="f-prio"><option value="lav">Lav</option><option value="middel" selected>Middel</option><option value="høj">Høj</option></select></div></div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Startdato</label><input type="date" id="f-start"></div><div class="form-group"><label>Deadline</label><input type="date" id="f-deadline"></div></div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Ansvarlig</label><select id="f-assignee">${memberOptions('')}</select></div><div class="form-group"><label>Milepæl</label><select id="f-ms">${msOptions(parentTask?.milestoneId||null)}</select></div></div>
+    <div class="form-group"><label>Tilhører</label><select id="f-parent">${parentOptions(parentId,null)}</select></div>
+    <div style="margin-bottom:13px">
+      <label style="font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:6px">Afhængigheder <span style="font-weight:400;color:var(--color-text-tertiary)">(kan tilføjes efter oprettelse)</span></label>
+      <div class="dep-tags" style="min-height:30px;padding:5px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);font-size:12px;display:flex;align-items:center">Ingen afhængigheder endnu</div>
+    </div>
+    <div class="comment-section">
+      <h3>Kommentarer (0)</h3>
+      <div style="font-size:13px;color:var(--color-text-tertiary)">Kommentarer kan tilføjes efter oprettelse</div>
+    </div>
+    <div class="modal-actions"><button class="btn" onclick="closeModalNow()">Annuller</button><button class="btn btn-primary" onclick="saveNewTask()">Opret opgave</button></div>`);
+  if(parentId)document.getElementById('f-parent').value=parentId;
+}
+function saveNewTask(){
+  const title=document.getElementById('f-title').value.trim();if(!title){alert('Titel er påkrævet');return;}
+  const pid=document.getElementById('f-parent').value;const msId=document.getElementById('f-ms').value;
+  const task={id:state.nextTaskId++,parentId:pid?parseInt(pid):null,title,description:document.getElementById('f-desc').value.trim(),priority:document.getElementById('f-prio').value,status:document.getElementById('f-status').value,assignee:document.getElementById('f-assignee').value,startDate:document.getElementById('f-start').value,deadline:document.getElementById('f-deadline').value,milestoneId:msId?parseInt(msId):null,deps:[],comments:[],createdAt:new Date().toISOString()};
+  state.tasks.push(task);addNotif(`${task.parentId?'Ny underopgave':'Ny opgave'}: "${task.title}"${task.assignee?' — tildelt '+task.assignee:''}`);
+  if(task.parentId)expanded[task.parentId]=true;save();render();closeModalNow();
+}
+
+function openTask(id){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  const parent=t.parentId?state.tasks.find(x=>x.id===t.parentId):null;
+  const ch=state.tasks.filter(c=>c.parentId===t.id);
+  const comments=t.comments||[];const deps=t.deps||[];
+  const available=state.tasks.filter(x=>x.id!==t.id&&x.parentId!==t.id&&!ch.find(c=>c.id===x.id));
+  openModal(`
+    <div style="margin-bottom:1rem">
+      ${parent?`<div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:3px">Underopgave i: ${esc(parent.title)}</div>`:'<div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">Hovedopgave</div>'}
+      <h2>${esc(t.title)}</h2>
+      ${t.description?`<p style="font-size:13px;color:var(--color-text-secondary);margin-top:6px;line-height:1.6">${esc(t.description)}</p>`:''}
+    </div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Status</label><select onchange="updateField(${t.id},'status',this.value)"><option value="todo"${t.status==='todo'?' selected':''}>Ikke startet</option><option value="prog"${t.status==='prog'?' selected':''}>I gang</option><option value="done"${t.status==='done'?' selected':''}>Færdig</option></select></div><div class="form-group"><label>Prioritet</label><select onchange="updateField(${t.id},'priority',this.value)"><option value="lav"${t.priority==='lav'?' selected':''}>Lav</option><option value="middel"${t.priority==='middel'?' selected':''}>Middel</option><option value="høj"${t.priority==='høj'?' selected':''}>Høj</option></select></div></div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Startdato</label><input type="date" value="${t.startDate||''}" onchange="updateField(${t.id},'startDate',this.value)"></div><div class="form-group"><label>Deadline</label><input type="date" value="${t.deadline||''}" onchange="updateField(${t.id},'deadline',this.value)"></div></div>
+    <div class="form-row" style="margin-bottom:10px"><div class="form-group"><label>Ansvarlig</label><select onchange="updateField(${t.id},'assignee',this.value)">${memberOptions(t.assignee)}</select></div><div class="form-group"><label>Milepæl</label><select onchange="updateField(${t.id},'milestoneId',this.value?parseInt(this.value):null)">${msOptions(t.milestoneId)}</select></div></div>
+    <div class="form-group"><label>Tilhører</label><select onchange="updateField(${t.id},'parentId',this.value?parseInt(this.value):null)">${parentOptions(t.parentId,t.id)}</select></div>
+    <div style="margin-bottom:13px">
+      <label style="font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:6px">Afhængigheder <span style="font-weight:400;color:var(--color-text-tertiary)">(denne opgave venter på...)</span></label>
+      <div class="dep-tags" id="dep-tags-${t.id}">${deps.map(depId=>{const d=state.tasks.find(x=>x.id===depId);return d?`<span class="dep-chip">${esc(d.title)}<button onclick="removeDep(${t.id},${depId})">×</button></span>`:''}).join('')}</div>
+      <div style="display:flex;gap:8px">
+        <select id="dep-select-${t.id}" style="flex:1;font-size:13px;padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)">
+          <option value="">Vælg opgave at afhænge af...</option>
+          ${available.filter(x=>!deps.includes(x.id)).map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('')}
+        </select>
+        <button class="btn btn-sm" onclick="addDep(${t.id})">Tilføj</button>
+      </div>
+    </div>
+    <div class="comment-section">
+      <h3>Kommentarer (${comments.length})</h3>
+      <div id="cmt-${t.id}">${!comments.length?'<div style="font-size:13px;color:var(--color-text-tertiary)">Ingen endnu</div>':comments.map(c=>`<div class="comment-item"><div class="comment-meta">${esc(c.author)} — ${fmtTime(c.time)}</div><div class="comment-text">${esc(c.text)}</div></div>`).join('')}</div>
+      <div class="comment-input-row">
+        <select id="ca-${t.id}" style="font-size:13px;padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)">${state.members.map(m=>`<option>${esc(m)}</option>`).join('')}</select>
+        <input type="text" id="ci-${t.id}" placeholder="Skriv kommentar..." onkeydown="if(event.key==='Enter')addComment(${t.id})">
+        <button class="btn" onclick="addComment(${t.id})">Send</button>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-danger" onclick="deleteTask(${t.id})">Slet</button><button class="btn" onclick="closeModalNow()">Luk</button></div>`);
+}
+
+function wouldCycle(fromId,toId){const visited=new Set();const q=[toId];while(q.length){const cur=q.shift();if(cur===fromId)return true;if(visited.has(cur))continue;visited.add(cur);const t=state.tasks.find(x=>x.id===cur);if(t&&t.deps)t.deps.forEach(d=>q.push(d));}return false;}
+
+function addDep(taskId){
+  const t=state.tasks.find(x=>x.id===taskId);if(!t)return;
+  const sel=document.getElementById('dep-select-'+taskId);
+  const depId=parseInt(sel.value);if(!depId)return;
+  if(!t.deps)t.deps=[];if(t.deps.includes(depId))return;
+  if(wouldCycle(taskId,depId)){alert('Cirkulær afhængighed — ikke tilladt.');return;}
+  t.deps.push(depId);
+  const depTask=state.tasks.find(x=>x.id===depId);
+  addNotif(`Afhængighed tilføjet: "${t.title}" venter på "${depTask?.title||depId}"`);
+  save();renderGantt();renderKanban();
+  const tags=document.getElementById('dep-tags-'+taskId);
+  if(tags)tags.innerHTML=t.deps.map(dId=>{const d=state.tasks.find(x=>x.id===dId);return d?`<span class="dep-chip">${esc(d.title)}<button onclick="removeDep(${taskId},${dId})">×</button></span>`:''}).join('');
+  const opt=sel.querySelector(`option[value="${depId}"]`);if(opt)opt.remove();sel.value='';
+}
+function removeDep(taskId,depId){
+  const t=state.tasks.find(x=>x.id===taskId);if(!t)return;
+  t.deps=(t.deps||[]).filter(x=>x!==depId);save();renderGantt();renderKanban();
+  const tags=document.getElementById('dep-tags-'+taskId);
+  if(tags)tags.innerHTML=t.deps.map(dId=>{const d=state.tasks.find(x=>x.id===dId);return d?`<span class="dep-chip">${esc(d.title)}<button onclick="removeDep(${taskId},${dId})">×</button></span>`:''}).join('');
+}
+function updateField(id,field,val){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  const old=t[field];t[field]=val;
+  if(field==='assignee'&&val&&val!==old)addNotif(`"${t.title}" tildelt til ${val}`);
+  if(field==='status'&&val==='done')addNotif(`${t.parentId?'Underopgave':'Opgave'} afsluttet: "${t.title}"`);
+  save();renderStats();renderKanban();renderGantt();renderMilestones();
+}
+function addComment(taskId){
+  const t=state.tasks.find(x=>x.id===taskId);if(!t)return;
+  const input=document.getElementById('ci-'+taskId);const authorEl=document.getElementById('ca-'+taskId);
+  const text=input.value.trim();if(!text)return;
+  const author=authorEl?authorEl.value:state.members[0]||'Ukendt';
+  if(!t.comments)t.comments=[];t.comments.push({author,text,time:new Date().toISOString()});
+  addNotif(`${author} kommenterede på "${t.title}"`);save();
+  const cd=document.getElementById('cmt-'+taskId);
+  if(cd)cd.innerHTML=t.comments.map(c=>`<div class="comment-item"><div class="comment-meta">${esc(c.author)} — ${fmtTime(c.time)}</div><div class="comment-text">${esc(c.text)}</div></div>`).join('');
+  input.value='';
+}
+function deleteTask(id){
+  if(!confirm('Slet opgave og underopgaver?'))return;
+  const t=state.tasks.find(x=>x.id===id);if(t)addNotif(`Opgave slettet: "${t.title}"`);
+  state.tasks=state.tasks.filter(x=>x.id!==id&&x.parentId!==id);
+  state.tasks.forEach(t=>{t.deps=(t.deps||[]).filter(d=>d!==id);});
+  save();render();closeModalNow();
+}
+function openNewMilestone(){openModal(`<h2>Ny milepæl</h2><div class="form-group"><label>Titel</label><input type="text" id="ms-title"></div><div class="form-group"><label>Dato</label><input type="date" id="ms-date"></div><div class="modal-actions"><button class="btn" onclick="closeModalNow()">Annuller</button><button class="btn btn-primary" onclick="saveNewMs()">Opret</button></div>`);}
+function saveNewMs(){const title=document.getElementById('ms-title').value.trim();if(!title){alert('Titel påkrævet');return;}state.milestones.push({id:state.nextMsId++,title,date:document.getElementById('ms-date').value,done:false});addNotif(`Ny milepæl: "${title}"`);save();render();closeModalNow();}
+function openEditMs(id){const ms=state.milestones.find(x=>x.id===id);if(!ms)return;openModal(`<h2>Rediger milepæl</h2><div class="form-group"><label>Titel</label><input type="text" id="ms-title" value="${esc(ms.title)}"></div><div class="form-group"><label>Dato</label><input type="date" id="ms-date" value="${ms.date||''}"></div><div class="modal-actions"><button class="btn btn-danger" onclick="deleteMs(${id})">Slet</button><button class="btn" onclick="closeModalNow()">Annuller</button><button class="btn btn-primary" onclick="saveEditMs(${id})">Gem</button></div>`);}
+function saveEditMs(id){const ms=state.milestones.find(x=>x.id===id);if(!ms)return;ms.title=document.getElementById('ms-title').value.trim()||ms.title;ms.date=document.getElementById('ms-date').value;save();render();closeModalNow();}
+function deleteMs(id){if(!confirm('Slet milepæl?'))return;state.tasks.forEach(t=>{if(t.milestoneId===id)t.milestoneId=null;});state.milestones=state.milestones.filter(x=>x.id!==id);save();render();closeModalNow();}
+function toggleMsDone(id){const ms=state.milestones.find(x=>x.id===id);if(!ms)return;ms.done=!ms.done;if(ms.done)addNotif(`Milepæl afsluttet: "${ms.title}"`);save();render();}
+
+window.addEventListener('load', function(){ render(); });
+</script>
+</body>
+</html>
